@@ -1,4 +1,7 @@
-/* Okuyucu: secilen okuma dosyasini (build_reader.py ciktisi) cihazda saklar (IndexedDB) ve bu adreste acar.
+/* HTML Library (eski adi Reader; 19.11.2026 genellestirildi): secilen HTML dosyasini cihazda saklar (IndexedDB) ve bu adreste acar.
+   Iki tur dosya: okuma dosyasi (build_reader.py ciktisi; kendi depo anahtari FK, menude "Other files") ve her baska tek
+   dosyalik HTML sayfasi (ornegin sinav-hazirlik study-page sayfalari). Baska sayfalarin localStorage anahtarlari, sayfanin
+   basina eklenen kucuk bir betikle dosya adina gore ayrilir (NS): ayni sitede acilan sayfalarin kayitlari karismaz.
    Dosya ayni kokene (origin) yazildigi icin localStorage calisir: okundu isaretleri, okuma yeri ve ⚑ kalici olur.
    Okuma dosyasi depo anahtarini adresteki ?f=<dosya adi>'ndan alir (reader_page.py, FK).
    ?src=<ayni kokende bir okuma dosyasi> (ÖNERİ-64, 04.11.2026): dosyayi indirir, cihazda saklar ve acar; boylece yayinlanan bir dosya
@@ -20,12 +23,20 @@
       "Menülerin, düğmelerin ve iletilerin dili",
       "Sprache der Menüs, Schaltflächen und Meldungen",
     ],
-    "Opens reading files (HTML) made by the html-okuma-dosyasi tool. Files stay on this device; nothing is uploaded.":
+    "Opens HTML files – reading files, study pages and other single-file pages – with all their functions. Files stay on this device; nothing is uploaded.":
       [
-        "html-okuma-dosyasi aracının ürettiği okuma dosyalarını (HTML) açar. Dosyalar bu cihazda kalır; hiçbir şey yüklenmez.",
-        "Öffnet Lesedateien (HTML), die das Werkzeug html-okuma-dosyasi erstellt. Die Dateien bleiben auf diesem Gerät; nichts wird hochgeladen.",
+        "HTML dosyalarını – okuma dosyaları, çalışma sayfaları ve tek dosyalık başka sayfalar – bütün işlevleriyle açar. Dosyalar bu cihazda kalır; hiçbir şey yüklenmez.",
+        "Öffnet HTML-Dateien – Lesedateien, Lernseiten und andere Seiten aus einer Datei – mit allen Funktionen. Die Dateien bleiben auf diesem Gerät; nichts wird hochgeladen.",
       ],
+    "HTML Library": ["HTML Kitaplığı", "HTML-Bibliothek"],
+    "📚 Library": ["📚 Kitaplık", "📚 Bibliothek"],
+    "Not an HTML file: {n}": ["HTML dosyası değil: {n}", "Keine HTML-Datei: {n}"],
     "＋ Open file": ["＋ Dosya aç", "＋ Datei öffnen"],
+    "No files yet. Open an HTML file from this device. It is kept here for next time, together with everything you saved in it.":
+      [
+        "Henüz dosya yok. Bu cihazdan bir HTML dosyası açın. Dosya, içinde kaydettiğiniz her şeyle birlikte bir dahaki sefer için burada saklanır.",
+        "Noch keine Dateien. Öffnen Sie eine HTML-Datei von diesem Gerät. Sie bleibt mit allem, was Sie darin gespeichert haben, für das nächste Mal hier.",
+      ],
     "No files yet. Download a reading file, then open it here. It is kept here for next time, with your read marks and flags.":
       [
         "Henüz dosya yok. Bir okuma dosyası indirin, sonra burada açın. Dosya, okundu ve çeviri işaretleriyle birlikte bir dahaki sefer için burada saklanır.",
@@ -36,6 +47,10 @@
       "Datei auf diesem Gerät nicht gefunden: {n}",
     ],
     Remove: ["Kaldır", "Entfernen"],
+    "Remove “{t}” from this device? Everything saved in it is removed too.": [
+      "“{t}” bu cihazdan kaldırılsın mı? İçinde kaydedilen her şey de silinir.",
+      "„{t}“ von diesem Gerät entfernen? Alles darin Gespeicherte wird ebenfalls entfernt.",
+    ],
     "Remove “{t}” from this device? Read marks and flags are removed too.": [
       "“{t}” bu cihazdan kaldırılsın mı? Okundu ve çeviri işaretleri de silinir.",
       "„{t}“ von diesem Gerät entfernen? Lese- und Übersetzungsmarkierungen werden ebenfalls entfernt.",
@@ -124,6 +139,8 @@
   };
   // isReader: metin bir okuma dosyasi mi (menu id="tools" ve <article> var mi); rastgele bir HTML kabul edilmez.
   const isReader = (t) => /id="tools"/.test(t) && /<article/.test(t);
+  // isHTML: kabul edilen her dosya (okuma dosyasi ya da baska bir HTML sayfasi)
+  const isHTML = (t) => /<(!doctype html|html|body)[\s>]/i.test(t);
   // prefix: okuma dosyasinin localStorage anahtarlarinin basi, ornegin f:/reader/umre-rehberi.html: (reader_page.py ayni
   // bicimi kullanir). Remove bu onekle baslayan kayitlari siler.
   const prefix = (name) => "f:" + location.pathname + name + ":";
@@ -132,10 +149,25 @@
   const BACK =
     '<script>(function(){function add(){var t=document.getElementById("tools"),a=document.createElement("a");' +
     "a.href=location.pathname;a.textContent=" +
-    JSON.stringify(T("📂 Other files")) +
+    JSON.stringify(T("📚 Library")) +
     ';a.id="reader-back";' +
-    'a.setAttribute("style",t?"display:block;padding:6px 0":"position:fixed;left:8px;bottom:8px;z-index:99;background:#fff;color:#222;padding:6px 10px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.2)");' +
+    'a.setAttribute("style",t?"display:block;padding:6px 0":"position:fixed;left:8px;bottom:8px;z-index:99;background:#fff;color:#222;padding:5px 10px;border-radius:16px;font:14px -apple-system,sans-serif;text-decoration:none;opacity:.85;box-shadow:0 1px 4px rgba(0,0,0,.25)");' +
     '(t||document.body).appendChild(a)}document.readyState==="loading"?document.addEventListener("DOMContentLoaded",add):add()})()<\/script>';
+
+  // NS: okuma dosyasi olmayan sayfalarin basina eklenir. localStorage'in getItem/setItem/removeItem/key/length/clear
+  // islevlerini prefix(name) onekiyle calistirir; sayfa kendi kayitlarini gorur, baska sayfalarinkini gormez. Remove ayni
+  // onekle siler. sessionStorage ve IndexedDB degismez.
+  const NS = (name) =>
+    '<script>(function(){var N=' + JSON.stringify(prefix(name)) + ',S=window.localStorage,P=Storage.prototype,' +
+    'g=P.getItem,s=P.setItem,r=P.removeItem,k=P.key,L=Object.getOwnPropertyDescriptor(P,"length");' +
+    'function o(x){return x===S}function ks(x){var a=[],i,n=L.get.call(x);for(i=0;i<n;i++){var y=k.call(x,i);if(y&&y.indexOf(N)===0)a.push(y)}return a}' +
+    'P.getItem=function(a){return o(this)?g.call(this,N+a):g.call(this,a)};' +
+    'P.setItem=function(a,b){return o(this)?s.call(this,N+a,b):s.call(this,a,b)};' +
+    'P.removeItem=function(a){return o(this)?r.call(this,N+a):r.call(this,a)};' +
+    'P.key=function(i){if(!o(this))return k.call(this,i);var y=ks(this)[i];return y===undefined?null:y.slice(N.length)};' +
+    'P.clear=function(){if(!o(this))return;var t=this;ks(t).forEach(function(y){r.call(t,y)})};' +
+    'Object.defineProperty(P,"length",{configurable:true,get:function(){return o(this)?ks(this).length:L.get.call(this)}})' +
+    '})()<\/script>';
 
   // ===== 4. show: saklanan dosyayi acar =====
   // Dosyayi veritabanindan alir, acilma zamanini yazar, adrese ?f=<ad> koyar (sayfa yenilenince ayni dosya acilir), sonuna
@@ -155,9 +187,15 @@
       "",
       location.pathname + "?f=" + encodeURIComponent(name),
     );
-    const i = f.text.search(/<\/body>\s*<\/html>\s*$/i);
+    let text = f.text;
+    if (!isReader(text)) {
+      // baska bir sayfa: kayit ayirma betigi <head>'in hemen basina (sayfanin kendi betiklerinden once)
+      const h = text.search(/<head[^>]*>/i);
+      text = h < 0 ? NS(name) + text : text.replace(/<head[^>]*>/i, (m) => m + NS(name));
+    }
+    const i = text.search(/<\/body>\s*<\/html>\s*$/i);
     const html =
-      i < 0 ? f.text + BACK : f.text.slice(0, i) + BACK + f.text.slice(i);
+      i < 0 ? text + BACK : text.slice(0, i) + BACK + text.slice(i);
     document.open();
     document.write(html);
     document.close();
@@ -185,7 +223,7 @@
           if (
             !confirm(
               T(
-                "Remove “{t}” from this device? Read marks and flags are removed too.",
+                isReader(f.text) ? "Remove “{t}” from this device? Read marks and flags are removed too." : "Remove “{t}” from this device? Everything saved in it is removed too.",
                 { t: f.title || f.name },
               ),
             )
@@ -220,8 +258,8 @@
     try {
       for (const file of picked) {
         const text = await file.text();
-        if (!isReader(text)) {
-          notes.push(T("Not a reading file: {n}", { n: file.name }));
+        if (!isHTML(text)) {
+          notes.push(T("Not an HTML file: {n}", { n: file.name }));
           continue;
         }
         const title = (text.match(/<title>([^<]*)<\/title>/i) || [])[1],
@@ -272,8 +310,8 @@
       msg(T("Could not open: {e}", { e: (err && err.message) || err }));
       return list();
     }
-    if (!isReader(text)) {
-      msg(T("Not a reading file: {n}", { n: name }));
+    if (!isHTML(text)) {
+      msg(T("Not an HTML file: {n}", { n: name }));
       return list();
     }
     if (!old || old.text !== text) {

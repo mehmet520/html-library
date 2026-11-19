@@ -1,9 +1,9 @@
 /* sw.js — cevrimdisi calisma: uygulama dosyalari onbellekten gelir, arka planda yenilenir (Kelime Karti'ndaki gibi).
-   Okuma dosyalari burada degil, IndexedDB'de durur. Uygulama degisince ONBELLEK surumunu artir. */
+   Acilan HTML dosyalari burada degil, IndexedDB'de durur. Uygulama degisince ONBELLEK surumunu artir. */
 // Onbellegin adi; app.js ya da index.html degisince surum artirilir, yeni sw.js eski onbellegi siler.
-const ONBELLEK = 'reader-v1.2.1'
+const ONBELLEK = 'html-library-v2.0.0'
 // Cevrimdisi da acilmasi gereken uygulama dosyalari (okuma dosyalari degil)
-const DOSYALAR = ['./', 'index.html', 'app.js']
+const DOSYALAR = ['./', 'index.html', 'app.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png']
 
 // install: yeni surum ilk kez yuklenince DOSYALAR onbellege konur; skipWaiting eski surumun kapanmasini beklemez.
 self.addEventListener('install', (e) => {

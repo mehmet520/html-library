@@ -3,7 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Reader</title>
+    <title>HTML Library</title>
+    <meta name="apple-mobile-web-app-title" content="HTML Library" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="icon" href="icon-192.png" />
     <style>
       :root {
         --bg: #faf8f4;
@@ -112,13 +117,13 @@
     </style>
   </head>
   <body>
-    <!-- Okuyucu sayfasinin iskeleti; davranis app.js'te.
+    <!-- HTML Library sayfasinin iskeleti; davranis app.js'te.
          data-t: metin secili arayuz diline cevrilir · #uil: 🌐 dil secimi · #pick: "+ Open file" dosya secimi
          #msg: uyari satiri · #list: saklanan dosyalar · #empty: liste bosken gorunen metin.
-         Bir dosya acilinca bu sayfanin tamami okuma dosyasiyla degisir (app.js, show). -->
+         Bir dosya acilinca bu sayfanin tamami o dosyayla degisir (app.js, show). -->
     <main>
       <div class="top">
-        <h1>Reader</h1>
+        <h1 data-t="HTML Library">HTML Library</h1>
         <label class="muted"
           >🌐 <span data-t="Interface language">Interface language</span>
           <select id="uil" title="Language of menus, buttons and messages">
@@ -129,8 +134,9 @@
         >
       </div>
       <p class="muted" data-t>
-        Opens reading files (HTML) made by the html-okuma-dosyasi tool. Files
-        stay on this device; nothing is uploaded.
+        Opens HTML files – reading files, study pages and other single-file
+        pages – with all their functions. Files stay on this device; nothing is
+        uploaded.
       </p>
       <label class="open"
         ><span data-t>＋ Open file</span
@@ -139,8 +145,8 @@
       <div id="msg" role="status"></div>
       <ul id="list"></ul>
       <p class="muted" id="empty" hidden data-t>
-        No files yet. Download a reading file, then open it here. It is kept
-        here for next time, with your read marks and flags.
+        No files yet. Open an HTML file from this device. It is kept here for
+        next time, together with everything you saved in it.
       </p>
     </main>
     <script src="app.js"></script>
